@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PixelAnim8 - 8-bit GIF Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="logo">PIXELANIM8</h1>
+      <span class="tagline">8-bit GIF Generator</span>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="container">
+        <div class="grid">
+          
+          <!-- Left Column -->
+          <div class="column">
+            
+            <!-- Upload -->
+            <section class="panel">
+              <h2 class="label">Source Image</h2>
+              <div id="uploadArea" class="upload-area">
+                <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.gif,.bmp" hidden>
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <p class="upload-text">Drop image or tap to upload</p>
+                <p class="upload-hint">PNG, JPEG, GIF, BMP (max 5MB)</p>
+              </div>
+              <div id="previewContainer" class="preview-container hidden">
+                <canvas id="previewCanvas"></canvas>
+                <button id="removeBtn" class="remove-btn">×</button>
+                <p id="fileName" class="file-name"></p>
+              </div>
+            </section>
+
+            <!-- Prompt -->
+            <section class="panel">
+              <h2 class="label">Animation Prompt</h2>
+              <textarea id="promptInput" class="textarea" placeholder="Describe animation: rainbow, wave, glitch, ripple, vortex..."></textarea>
+              <div class="effect-tags">
+                <button class="effect-tag" data-effect="rainbow">🌈 Rainbow</button>
+                <button class="effect-tag" data-effect="wave">🌊 Wave</button>
+                <button class="effect-tag" data-effect="glitch">📺 Glitch</button>
+                <button class="effect-tag" data-effect="ripple">💧 Ripple</button>
+                <button class="effect-tag" data-effect="vortex">🌀 Vortex</button>
+                <button class="effect-tag" data-effect="pulse">💓 Pulse</button>
+                <button class="effect-tag" data-effect="spin">🔄 Spin</button>
+                <button class="effect-tag" data-effect="zoom">🔍 Zoom</button>
+              </div>
+            </section>
+
+            <!-- Parameters -->
+            <section class="panel">
+              <h2 class="label">Parameters</h2>
+              
+              <div class="param-row">
+                <label>Palette</label>
+                <select id="paletteSelect" class="select">
+                  <option value="nes">NES (8 colors)</option>
+                  <option value="gameboy">Game Boy (4 colors)</option>
+                  <option value="c64">C64 (8 colors)</option>
+                  <option value="mono">Monochrome</option>
+                </select>
+                <div id="palettePreview" class="palette-preview"></div>
+              </div>
+
+              <div class="param-row">
+                <label>Frames: <span id="framesValue">4</span></label>
+                <input type="range" id="framesSlider" class="slider" min="2" max="12" value="4">
+              </div>
+
+              <div class="param-row">
+                <label>Speed: <span id="fpsValue">5 FPS</span></label>
+                <input type="range" id="fpsSlider" class="slider" min="2" max="15" value="5">
+              </div>
+
+              <div class="param-row">
+                <label>Size</label>
+                <div class="size-buttons">
+                  <button class="size-btn" data-size="64">64px</button>
+                  <button class="size-btn active" data-size="128">128px</button>
+                  <button class="size-btn" data-size="256">256px</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Generate Button -->
+            <button id="generateBtn" class="generate-btn" disabled>
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text">GENERATE GIF</span>
+            </button>
+
+            <div id="errorBox" class="error-box hidden"></div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="column">
+            
+            <!-- Result -->
+            <section class="panel">
+              <h2 class="label">Result</h2>
+              <div class="monitor">
+                <div class="screen">
+                  <div id="emptyState" class="state-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="2" y="3" width="20" height="14" rx="2"/>
+                      <line x1="8" y1="21" x2="16" y2="21"/>
+                      <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    <p>NO GIF YET</p>
+                    <span>Upload an image to start</span>
+                  </div>
+                  <div id="loadingState" class="state-loading hidden">
+                    <div class="spinner"></div>
+                    <p>GENERATING...</p>
+                    <div class="progress-bar">
+                      <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <span id="progressText">0%</span>
+                  </div>
+                  <div id="resultState" class="state-result hidden">
+                    <img id="resultGif" alt="Generated GIF">
+                  </div>
+                </div>
+                <div class="monitor-controls">
+                  <div class="leds">
+                    <span class="led green"></span>
+                    <span class="led yellow"></span>
+                  </div>
+                  <span class="monitor-label">PIXELANIM8</span>
+                </div>
+              </div>
+
+              <!-- Metadata -->
+              <div id="metadataBox" class="metadata hidden">
+                <div class="meta-item">
+                  <span class="meta-label">Frames:</span>
+                  <span id="metaFrames">-</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Palette:</span>
+                  <span id="metaPalette">-</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Size:</span>
+                  <span id="metaSize">-</span>
+                </div>
+                <div class="meta-item">
+                  <span class="meta-label">Effect:</span>
+                  <span id="metaEffect">-</span>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div id="actionButtons" class="actions hidden">
+                <button id="downloadBtn" class="action-btn secondary">
+                  ⬇ Download
+                </button>
+                <button id="regenerateBtn" class="action-btn primary">
+                  🔄 Regenerate
+                </button>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>Made with</span>
+      <span class="heart">❤</span>
+      <span>for retro gaming fans</span>
+    </footer>
+  </div>
+
+  <!-- Hidden canvas for processing -->
+  <canvas id="workCanvas" hidden></canvas>
+
+  <!-- GIF.js library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
