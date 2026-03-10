@@ -1,0 +1,16 @@
+{
+  "name": "pixelanim8-netlify",
+  "version": "1.0.0",
+  "description": "PixelAnim8 - 8-bit GIF Generator for Netlify",
+  "scripts": {
+    "build": "echo 'No build required'",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "gif-encoder-2": "^1.0.5"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
