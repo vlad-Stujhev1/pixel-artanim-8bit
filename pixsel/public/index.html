@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>PixelAnim8 - 8-bit GIF Generator</title>
+  
+  <!-- Preconnect for fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ============================================
+       PIXELANIM8 - MOBILE-FIRST RETRO STYLES
+       Optimized for Android & iPhone
+       ============================================ */
+    
+    *, *::before, *::after {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+    
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      
+      --background: #1e1e2f;
+      --foreground: #f0f0f0;
+      --card: #2d2d44;
+      --card-hover: #3d3d5c;
+      --primary: #ffcc00;
+      --primary-foreground: #1e1e2f;
+      --secondary: #3d3d5c;
+      --muted-foreground: #c2c3c7;
+      --accent: #4a9eff;
+      --destructive: #ff4d4d;
+      --border: #5f574f;
+      --nes-dark-blue: #1d2b53;
+      --nes-dark-gray: #5f574f;
+      --nes-light-gray: #c2c3c7;
+      --retro-success: #7ed957;
+      
+      --font-pixel: 'Press Start 2P', cursive;
+      --font-retro: 'VT323', monospace;
+    }
+    
+    html {
+      height: 100%;
+      overflow: hidden;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    
+    body {
+      font-family: var(--font-retro);
+      font-size: 18px;
+      line-height: 1.4;
+      background-color: var(--background);
+      color: var(--foreground);
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      -webkit-overflow-scrolling: touch;
+      position: fixed;
+      width: 100%;
+    }
+    
+    /* App container */
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+    }
+    
+    /* Pixel Grid Background */
+    .pixel-grid-bg {
+      background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 204, 0, 0.02) 2px, rgba(255, 204, 0, 0.02) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 204, 0, 0.02) 2px, rgba(255, 204, 0, 0.02) 4px);
+    }
+    
+    /* Header - Fixed */
+    .header {
+      background-color: var(--card);
+      border-bottom: 2px solid var(--border);
+      padding: 12px 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 100%;
+    }
+    
+    .logo {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+    
+    .tagline {
+      font-family: var(--font-retro);
+      font-size: 14px;
+      color: var(--muted-foreground);
+      display: none;
+    }
+    
+    @media (min-width: 400px) {
+      .logo { font-size: 14px; }
+      .tagline { display: inline; margin-left: 12px; }
+    }
+    
+    /* Main scrollable content */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      will-change: scroll-position;
+    }
+    
+    .main-inner {
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* Content Grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    @media (min-width: 900px) {
+      .content-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+      }
+    }
+    
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    /* Panels */
+    .panel {
+      background-color: var(--card);
+      border: 2px solid var(--border);
+      overflow: hidden;
+    }
+    
+    .panel-padding {
+      padding: 16px;
+    }
+    
+    .panel-header {
+      background-color: var(--secondary);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    .panel-header:active {
+      filter: brightness(0.9);
+    }
+    
+    /* Labels */
+    .label {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--nes-light-gray);
+      display: block;
+      margin-bottom: 8px;
+    }
+    
+    @media (min-width: 400px) {
+      .label { font-size: 10px; }
+    }
+    
+    /* Buttons */
+    .pixel-btn {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      padding: 14px 20px;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border: 2px solid var(--border);
+      box-shadow: inset -2px -2px 0 0 var(--nes-dark-gray), inset 2px 2px 0 0 var(--nes-light-gray);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: transform 0.1s, filter 0.1s;
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .pixel-btn:active:not(:disabled) {
+      transform: scale(0.98);
+      box-shadow: inset 2px 2px 0 0 var(--nes-dark-gray), inset -2px -2px 0 0 var(--nes-light-gray);
+    }
+    
+    .pixel-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    @media (min-width: 400px) {
+      .pixel-btn { font-size: 10px; padding: 12px 24px; }
+    }
+    
+    .pixel-btn-secondary {
+      background: var(--secondary);
+      color: var(--foreground);
+    }
+    
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed var(--border);
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    .upload-area.dragging,
+    .upload-area:active {
+      border-color: var(--primary);
+      background-color: rgba(255, 204, 0, 0.05);
+    }
+    
+    .upload-icon {
+      padding: 12px;
+      border: 2px solid var(--border);
+    }
+    
+    .upload-text {
+      text-align: center;
+    }
+    
+    .upload-preview {
+      position: relative;
+      border: 2px solid var(--border);
+      overflow: hidden;
+    }
+    
+    .upload-preview img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      display: block;
+    }
+    
+    .remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 8px;
+      background: var(--destructive);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    
+    .file-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      padding: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--nes-light-gray);
+    }
+    
+    /* Textarea */
+    .textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      padding-bottom: 28px;
+      background-color: var(--card);
+      border: 2px solid var(--border);
+      color: var(--foreground);
+      font-family: var(--font-retro);
+      font-size: 16px;
+      resize: none;
+      box-shadow: inset 2px 2px 0 0 rgba(0,0,0,0.3);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    .textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    .textarea::placeholder {
+      color: var(--muted-foreground);
+    }
+    
+    .char-count {
+      position: absolute;
+      bottom: 6px;
+      right: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--muted-foreground);
+    }
+    
+    /* Select */
+    .select {
+      width: 100%;
+      padding: 10px 12px;
+      background-color: var(--secondary);
+      border: 2px solid var(--border);
+      color: var(--foreground);
+      font-family: var(--font-retro);
+      font-size: 16px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c2c3c7' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    
+    .select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    
+    /* Range Slider */
+    .slider {
+      width: 100%;
+      height: 24px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+    }
+    
+    .slider::-webkit-slider-track {
+      height: 8px;
+      background: var(--secondary);
+      border: 2px solid var(--border);
+    }
+    
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      border: 2px solid var(--border);
+      margin-top: -10px;
+      cursor: pointer;
+    }
+    
+    .slider::-moz-range-track {
+      height: 8px;
+      background: var(--secondary);
+      border: 2px solid var(--border);
+    }
+    
+    .slider::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      background: var(--primary);
+      border: 2px solid var(--border);
+      cursor: pointer;
+    }
+    
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted-foreground);
+      margin-top: 4px;
+    }
+    
+    /* Palette Colors */
+    .palette-colors {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    
+    .palette-color {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border);
+    }
+    
+    /* Size Buttons */
+    .size-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    .size-btn {
+      padding: 10px 8px;
+      border: 2px solid var(--border);
+      background-color: var(--secondary);
+      color: var(--foreground);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    .size-btn.active {
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+    
+    /* Effect Grid */
+    .effect-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    @media (min-width: 500px) {
+      .effect-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    
+    .effect-btn {
+      padding: 10px 6px;
+      border: 2px solid var(--border);
+      background-color: var(--secondary);
+      color: var(--foreground);
+      font-family: var(--font-retro);
+      font-size: 11px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      text-align: center;
+      line-height: 1.2;
+    }
+    
+    .effect-btn.active {
+      background-color: var(--accent);
+      color: var(--accent-foreground);
+      border-color: var(--accent);
+    }
+    
+    /* Monitor Frame */
+    .monitor-frame {
+      background: linear-gradient(145deg, #8b8b8b 0%, #6b6b6b 50%, #8b8b8b 100%);
+      border: 4px solid #5a5a5a;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    
+    .monitor-screen {
+      background: #0f0f0f;
+      border: 3px solid #3a3a3a;
+      padding: 8px;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 15px rgba(0, 255, 0, 0.05);
+    }
+    
+    .monitor-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding: 0 8px;
+    }
+    
+    .monitor-led {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .monitor-led.green { background-color: var(--retro-success); }
+    .monitor-led.yellow { background-color: var(--primary); }
+    
+    .monitor-label {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      color: var(--muted-foreground);
+    }
+    
+    /* States */
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      color: var(--muted-foreground);
+    }
+    
+    /* Progress */
+    .progress-bar {
+      width: 160px;
+      height: 16px;
+      background-color: var(--nes-dark-blue);
+      border: 2px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      margin: 12px auto 0;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary);
+      transition: width 0.3s;
+    }
+    
+    .progress-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+    }
+    
+    /* Metadata */
+    .metadata-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    
+    .metadata-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .metadata-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+    
+    .metadata-label {
+      font-size: 10px;
+      color: var(--muted-foreground);
+    }
+    
+    .metadata-value {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    
+    /* Result Actions */
+    .result-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    /* History */
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    
+    @media (min-width: 500px) {
+      .history-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+    
+    .history-item {
+      position: relative;
+      aspect-ratio: 1;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      overflow: hidden;
+    }
+    
+    .history-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      image-rendering: pixelated;
+    }
+    
+    /* Suggestions */
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    
+    .suggestion-btn {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      background-color: var(--secondary);
+      color: var(--foreground);
+      font-family: var(--font-retro);
+      font-size: 12px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    .suggestion-btn:active {
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+    }
+    
+    /* Quick Tags */
+    .quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 12px 16px;
+    }
+    
+    .tag {
+      padding: 4px 8px;
+      background-color: var(--secondary);
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+    }
+    
+    /* Error */
+    .error-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      background-color: rgba(255, 77, 77, 0.1);
+      border: 2px solid var(--destructive);
+      margin-top: 12px;
+    }
+    
+    /* Hint */
+    .hint {
+      text-align: center;
+      font-family: var(--font-retro);
+      margin-top: 12px;
+      color: var(--muted-foreground);
+      font-size: 14px;
+    }
+    
+    /* Footer */
+    .footer {
+      background-color: var(--card);
+      border-top: 2px solid var(--border);
+      padding: 12px 16px;
+      flex-shrink: 0;
+    }
+    
+    .footer-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted-foreground);
+    }
+    
+    /* Animations */
+    @keyframes pixel-run {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(3px); }
+    }
+    
+    .pixel-loading {
+      animation: pixel-run 0.3s steps(2) infinite;
+    }
+    
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Chevron */
+    .chevron {
+      width: 14px;
+      height: 14px;
+      color: var(--muted-foreground);
+      transition: transform 0.2s;
+    }
+    
+    .chevron.open {
+      transform: rotate(180deg);
+    }
+    
+    /* Input group */
+    .input-group {
+      position: relative;
+    }
+    
+    /* Icon buttons row */
+    .icon-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted-foreground);
+      font-family: var(--font-retro);
+      font-size: 12px;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    .icon-btn:active {
+      color: var(--foreground);
+    }
+    
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .pixel-loading { animation: none; }
+      * { transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body class="pixel-grid-bg">
+  <div class="app">
+    
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div>
+          <span class="logo">PIXELANIM8</span>
+          <span class="tagline">8-bit GIF Generator</span>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-grid">
+          
+          <!-- Left Column -->
+          <div class="column">
+            
+            <!-- Upload -->
+            <div class="panel">
+              <div class="panel-padding">
+                <label class="label">Source Image</label>
+                <div id="upload-area" class="upload-area">
+                  <input type="file" id="file-input" accept=".png,.jpg,.jpeg,.gif,.bmp" style="display:none">
+                  <div class="upload-icon">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted-foreground)">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/>
+                      <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                  </div>
+                  <div class="upload-text">
+                    <div style="font-size:16px">Drop image or tap</div>
+                    <div style="font-size:12px;color:var(--muted-foreground);margin-top:4px">PNG, JPEG, GIF, BMP (max 5MB)</div>
+                  </div>
+                </div>
+                <div id="upload-preview" class="upload-preview hidden">
+                  <img id="preview-image" src="" alt="Preview">
+                  <button class="remove-btn" id="remove-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                  <div class="file-name" id="file-name"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Prompt -->
+            <div class="panel">
+              <div class="panel-padding">
+                <label class="label">Animation Prompt</label>
+                <div class="input-group">
+                  <textarea id="prompt-input" class="textarea" placeholder="Describe the animation… (e.g., 'ripple', 'glitch', 'vortex')" maxlength="200"></textarea>
+                  <div id="char-count" class="char-count">0/200</div>
+                </div>
+                <div class="icon-row">
+                  <button id="suggestions-toggle" class="icon-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                    </svg>
+                    Ideas
+                  </button>
+                  <button id="clear-prompt" class="icon-btn hidden">Clear</button>
+                </div>
+                <div id="suggestions-panel" class="suggestions hidden"></div>
+              </div>
+            </div>
+            
+            <!-- Effects -->
+            <div class="panel">
+              <div class="panel-header" id="effects-toggle">
+                <span class="label" style="margin:0">Effects (16)</span>
+                <svg id="effects-chevron" class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+              <div id="effects-content" class="panel-padding hidden">
+                <div class="effect-grid" id="effect-grid"></div>
+              </div>
+              <div id="quick-effect" class="quick-tags">
+                <span class="tag" id="current-effect">Breathing</span>
+              </div>
+            </div>
+            
+            <!-- Parameters -->
+            <div class="panel">
+              <div class="panel-header" id="params-toggle">
+                <span class="label" style="margin:0">Parameters</span>
+                <svg id="params-chevron" class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+              <div id="params-content" class="panel-padding hidden">
+                
+                <!-- Palette -->
+                <div style="margin-bottom:16px">
+                  <label class="label">Palette</label>
+                  <select id="palette-select" class="select"></select>
+                  <div id="palette-colors" class="palette-colors"></div>
+                </div>
+                
+                <!-- Frames -->
+                <div style="margin-bottom:16px">
+                  <label class="label">Frames: <span id="frames-value" style="color:var(--primary)">4</span></label>
+                  <input type="range" id="frames-slider" class="slider" min="2" max="12" value="4">
+                  <div class="slider-labels"><span>2</span><span>12</span></div>
+                </div>
+                
+                <!-- Speed -->
+                <div style="margin-bottom:16px">
+                  <label class="label">Speed: <span id="fps-value" style="color:var(--primary)">5 FPS</span></label>
+                  <input type="range" id="fps-slider" class="slider" min="2" max="15" value="5">
+                  <div class="slider-labels"><span>2 FPS</span><span>15 FPS</span></div>
+                </div>
+                
+                <!-- Size -->
+                <div>
+                  <label class="label">Output Size</label>
+                  <div class="size-buttons" id="size-buttons"></div>
+                </div>
+              </div>
+              <div id="quick-params" class="quick-tags">
+                <span class="tag" id="quick-palette">NES</span>
+                <span class="tag" id="quick-frames">4f</span>
+                <span class="tag" id="quick-fps">5fps</span>
+                <span class="tag" id="quick-size">256px</span>
+              </div>
+            </div>
+            
+            <!-- Generate -->
+            <button id="generate-btn" class="pixel-btn" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              GENERATE GIF
+            </button>
+            <div id="error-message" class="error-message hidden">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--destructive)">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span id="error-text"></span>
+            </div>
+            <p id="hint" class="hint">Upload an image to start</p>
+          </div>
+          
+          <!-- Right Column -->
+          <div class="column">
+            
+            <!-- Result -->
+            <div>
+              <label class="label">Result</label>
+              <div class="monitor-frame">
+                <div class="monitor-screen" id="monitor-screen">
+                  <!-- Empty -->
+                  <div id="empty-state" class="empty-state">
+                    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                      <line x1="8" y1="21" x2="16" y2="21"/>
+                      <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    <div class="font-pixel" style="font-size:8px;color:var(--muted-foreground)">NO GIF YET</div>
+                    <div style="font-size:14px;color:var(--muted-foreground);margin-top:4px">Upload & describe!</div>
+                  </div>
+                  <!-- Loading -->
+                  <div id="loading-state" class="empty-state hidden">
+                    <div class="pixel-loading">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary)">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                      </svg>
+                    </div>
+                    <div class="progress-bar">
+                      <div id="progress-fill" class="progress-fill" style="width:0%"></div>
+                      <div class="progress-text"><span id="progress-text">0%</span></div>
+                    </div>
+                    <div style="font-size:14px;color:var(--muted-foreground);margin-top:8px">Generating...</div>
+                  </div>
+                  <!-- Result -->
+                  <div id="result-state" class="hidden" style="width:100%">
+                    <img id="result-gif" src="" alt="GIF" style="width:100%;max-height:300px;object-fit:contain;image-rendering:pixelated">
+                  </div>
+                </div>
+                <div class="monitor-controls">
+                  <div style="display:flex;gap:8px">
+                    <div class="monitor-led green"></div>
+                    <div class="monitor-led yellow"></div>
+                  </div>
+                  <div class="monitor-label">PIXELANIM8</div>
+                </div>
+              </div>
+              
+              <!-- Metadata -->
+              <div id="metadata-panel" class="panel hidden" style="margin-top:12px">
+                <div class="panel-padding">
+                  <div class="metadata-grid">
+                    <div class="metadata-item">
+                      <svg class="metadata-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      </svg>
+                      <div>
+                        <div class="metadata-label">Frames</div>
+                        <div id="meta-frames" class="metadata-value">-</div>
+                      </div>
+                    </div>
+                    <div class="metadata-item">
+                      <svg class="metadata-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                      </svg>
+                      <div>
+                        <div class="metadata-label">Palette</div>
+                        <div id="meta-palette" class="metadata-value">-</div>
+                      </div>
+                    </div>
+                    <div class="metadata-item">
+                      <svg class="metadata-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                      </svg>
+                      <div>
+                        <div class="metadata-label">Size</div>
+                        <div id="meta-size" class="metadata-value">-</div>
+                      </div>
+                    </div>
+                    <div class="metadata-item">
+                      <svg class="metadata-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                      </svg>
+                      <div>
+                        <div class="metadata-label">Effect</div>
+                        <div id="meta-effect" class="metadata-value">-</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Actions -->
+              <div id="result-actions" class="result-actions hidden">
+                <button id="download-btn" class="pixel-btn pixel-btn-secondary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Download
+                </button>
+                <button id="regenerate-btn" class="pixel-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                  Regenerate
+                </button>
+              </div>
+            </div>
+            
+            <!-- History -->
+            <div id="history-section" class="hidden">
+              <label class="label">History</label>
+              <div id="history-grid" class="history-grid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <span>Made with</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--destructive)">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+        <span>for retro gaming fans</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const CONFIG = {
+      API_URL: '/.netlify/functions/generate',
+      MAX_FILE_SIZE: 5 * 1024 * 1024,
+      SUPPORTED_TYPES: ['image/png', 'image/jpeg', 'image/gif', 'image/bmp'],
+      
+      PALETTES: {
+        nes: { name: 'NES', colors: ['#0f0f0f', '#1d2b53', '#7e2553', '#008751', '#ab5236', '#5f574f', '#c2c3c7', '#fff1e8'] },
+        gameboy: { name: 'Game Boy', colors: ['#0f380f', '#306230', '#8bac0f', '#9bbc0f'] },
+        c64: { name: 'C64', colors: ['#000000', '#ffffff', '#880000', '#aaffee', '#cc44cc', '#00cc55', '#0000aa', '#eeee77'] },
+        mono: { name: 'Mono', colors: ['#000000', '#ffffff'] },
+        sepia: { name: 'Sepia', colors: ['#442117', '#5a432d', '#876643', '#b38559', '#e1a770', '#ffc896'] },
+        vga: { name: 'VGA', colors: ['#000000', '#0000aa', '#00aa00', '#00aaaa', '#aa0000', '#aa00aa', '#aa5500', '#aaaaaa', '#555555', '#5555ff', '#55ff55', '#55ffff', '#ff5555', '#ff55ff', '#ffff55', '#ffffff'] }
+      },
+      
+      EFFECTS: [
+        { id: 'breathing', name: 'Breath', keywords: ['breathing', 'pulse', 'breathe'] },
+        { id: 'pixelReveal', name: 'Reveal', keywords: ['reveal', 'draw', 'appear'] },
+        { id: 'colorWave', name: 'Wave', keywords: ['wave', 'sweep'] },
+        { id: 'ripple', name: 'Ripple', keywords: ['ripple', 'water', 'splash'] },
+        { id: 'glitch', name: 'Glitch', keywords: ['glitch', 'corrupt', 'error'] },
+        { id: 'vortex', name: 'Vortex', keywords: ['vortex', 'spiral', 'twist'] },
+        { id: 'hueCycle', name: 'Rainbow', keywords: ['rainbow', 'hue', 'color cycle'] },
+        { id: 'noiseWarp', name: 'Warp', keywords: ['warp', 'distort', 'melt'] },
+        { id: 'pixelDissolve', name: 'Dissolve', keywords: ['dissolve', 'fade'] },
+        { id: 'mosaicZoom', name: 'Mosaic', keywords: ['mosaic', 'pixelate'] },
+        { id: 'pixelSort', name: 'Sort', keywords: ['sort', 'organize'] },
+        { id: 'colorSeparation', name: 'RGB Split', keywords: ['rgb', 'split', 'separation'] },
+        { id: 'scanlineWave', name: 'CRT', keywords: ['crt', 'scanline', 'tv'] },
+        { id: 'interlace', name: 'Interlace', keywords: ['interlace', 'lines'] },
+        { id: 'pixelateProgressive', name: 'Pixelate', keywords: ['pixelate', 'block'] },
+        { id: 'edgeFlow', name: 'Edges', keywords: ['edge', 'outline', 'flow'] }
+      ],
+      
+      SIZES: ['128', '256', '512']
+    };
+
+    // ============================================
+    // STATE
+    // ============================================
+    const state = {
+      image: null,
+      imageName: null,
+      prompt: '',
+      effect: 'breathing',
+      palette: 'nes',
+      frames: 4,
+      fps: 5,
+      size: '256',
+      generating: false,
+      result: null,
+      history: []
+    };
+
+    // ============================================
+    // DOM ELEMENTS
+    // ============================================
+    const $ = id => document.getElementById(id);
+    const $$ = sel => document.querySelectorAll(sel);
+
+    const dom = {
+      // Upload
+      uploadArea: $('upload-area'),
+      fileInput: $('file-input'),
+      uploadPreview: $('upload-preview'),
+      previewImage: $('preview-image'),
+      removeBtn: $('remove-btn'),
+      fileName: $('file-name'),
+      
+      // Prompt
+      promptInput: $('prompt-input'),
+      charCount: $('char-count'),
+      suggestionsToggle: $('suggestions-toggle'),
+      suggestionsPanel: $('suggestions-panel'),
+      clearPrompt: $('clear-prompt'),
+      
+      // Effects
+      effectsToggle: $('effects-toggle'),
+      effectsChevron: $('effects-chevron'),
+      effectsContent: $('effects-content'),
+      effectGrid: $('effect-grid'),
+      currentEffect: $('current-effect'),
+      
+      // Parameters
+      paramsToggle: $('params-toggle'),
+      paramsChevron: $('params-chevron'),
+      paramsContent: $('params-content'),
+      paletteSelect: $('palette-select'),
+      paletteColors: $('palette-colors'),
+      framesSlider: $('frames-slider'),
+      framesValue: $('frames-value'),
+      fpsSlider: $('fps-slider'),
+      fpsValue: $('fps-value'),
+      sizeButtons: $('size-buttons'),
+      quickParams: $('quick-params'),
+      quickPalette: $('quick-palette'),
+      quickFrames: $('quick-frames'),
+      quickFps: $('quick-fps'),
+      quickSize: $('quick-size'),
+      
+      // Generate
+      generateBtn: $('generate-btn'),
+      errorMessage: $('error-message'),
+      errorText: $('error-text'),
+      hint: $('hint'),
+      
+      // Result
+      emptyState: $('empty-state'),
+      loadingState: $('loading-state'),
+      resultState: $('result-state'),
+      resultGif: $('result-gif'),
+      progressFill: $('progress-fill'),
+      progressText: $('progress-text'),
+      metadataPanel: $('metadata-panel'),
+      metaFrames: $('meta-frames'),
+      metaPalette: $('meta-palette'),
+      metaSize: $('meta-size'),
+      metaEffect: $('meta-effect'),
+      resultActions: $('result-actions'),
+      downloadBtn: $('download-btn'),
+      regenerateBtn: $('regenerate-btn'),
+      
+      // History
+      historySection: $('history-section'),
+      historyGrid: $('history-grid')
+    };
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    function init() {
+      loadHistory();
+      buildUI();
+      bindEvents();
+      updateUI();
+    }
+
+    function loadHistory() {
+      try {
+        state.history = JSON.parse(localStorage.getItem('pixelanim8_history') || '[]');
+      } catch { state.history = []; }
+    }
+
+    function saveHistory() {
+      localStorage.setItem('pixelanim8_history', JSON.stringify(state.history.slice(0, 8)));
+    }
+
+    function buildUI() {
+      // Build palette select
+      dom.paletteSelect.innerHTML = Object.entries(CONFIG.PALETTES)
+        .map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+      
+      // Build size buttons
+      dom.sizeButtons.innerHTML = CONFIG.SIZES.map((s, i) => 
+        `<button class="size-btn${i === 1 ? ' active' : ''}" data-size="${s}">${s}px</button>`
+      ).join('');
+      
+      // Build effect grid
+      dom.effectGrid.innerHTML = CONFIG.EFFECTS.map(e => 
+        `<button class="effect-btn${e.id === state.effect ? ' active' : ''}" data-effect="${e.id}">${e.name}</button>`
+      ).join('');
+      
+      // Build palette colors
+      updatePaletteColors();
+      
+      // Build suggestions
+      const suggestions = ['ripple', 'glitch', 'rainbow', 'vortex', 'warp', 'CRT', 'RGB split'];
+      dom.suggestionsPanel.innerHTML = suggestions.map(s => 
+        `<button class="suggestion-btn">${s}</button>`
+      ).join('');
+      
+      // Render history
+      renderHistory();
+    }
+
+    function bindEvents() {
+      // Upload
+      dom.uploadArea.addEventListener('click', () => dom.fileInput.click());
+      dom.uploadArea.addEventListener('dragover', e => { e.preventDefault(); dom.uploadArea.classList.add('dragging'); });
+      dom.uploadArea.addEventListener('dragleave', () => dom.uploadArea.classList.remove('dragging'));
+      dom.uploadArea.addEventListener('drop', handleDrop);
+      dom.fileInput.addEventListener('change', handleFileChange);
+      dom.removeBtn.addEventListener('click', clearImage);
+      
+      // Prompt
+      dom.promptInput.addEventListener('input', handlePromptInput);
+      dom.clearPrompt.addEventListener('click', () => { dom.promptInput.value = ''; handlePromptInput(); });
+      dom.suggestionsToggle.addEventListener('click', () => dom.suggestionsPanel.classList.toggle('hidden'));
+      dom.suggestionsPanel.addEventListener('click', e => {
+        if (e.target.classList.contains('suggestion-btn')) {
+          dom.promptInput.value = e.target.textContent;
+          handlePromptInput();
+          dom.suggestionsPanel.classList.add('hidden');
+        }
+      });
+      
+      // Effects
+      dom.effectsToggle.addEventListener('click', () => {
+        dom.effectsContent.classList.toggle('hidden');
+        dom.effectsChevron.classList.toggle('open');
+      });
+      dom.effectGrid.addEventListener('click', e => {
+        if (e.target.classList.contains('effect-btn')) {
+          state.effect = e.target.dataset.effect;
+          $$('.effect-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          dom.currentEffect.textContent = CONFIG.EFFECTS.find(e => e.id === state.effect).name;
+        }
+      });
+      
+      // Parameters
+      dom.paramsToggle.addEventListener('click', () => {
+        dom.paramsContent.classList.toggle('hidden');
+        dom.paramsChevron.classList.toggle('open');
+      });
+      dom.paletteSelect.addEventListener('change', e => { state.palette = e.target.value; updatePaletteColors(); updateQuickTags(); });
+      dom.framesSlider.addEventListener('input', e => { state.frames = +e.target.value; dom.framesValue.textContent = state.frames; updateQuickTags(); });
+      dom.fpsSlider.addEventListener('input', e => { state.fps = +e.target.value; dom.fpsValue.textContent = `${state.fps} FPS`; updateQuickTags(); });
+      dom.sizeButtons.addEventListener('click', e => {
+        if (e.target.classList.contains('size-btn')) {
+          state.size = e.target.dataset.size;
+          $$('.size-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          updateQuickTags();
+        }
+      });
+      
+      // Generate
+      dom.generateBtn.addEventListener('click', generate);
+      dom.regenerateBtn.addEventListener('click', generate);
+      dom.downloadBtn.addEventListener('click', downloadGif);
+      
+      // History
+      dom.historyGrid.addEventListener('click', handleHistoryClick);
+    }
+
+    // ============================================
+    // EVENT HANDLERS
+    // ============================================
+    function handleDrop(e) {
+      e.preventDefault();
+      dom.uploadArea.classList.remove('dragging');
+      const file = e.dataTransfer.files[0];
+      if (file) processFile(file);
+    }
+
+    function handleFileChange(e) {
+      const file = e.target.files[0];
+      if (file) processFile(file);
+    }
+
+    function processFile(file) {
+      if (!CONFIG.SUPPORTED_TYPES.includes(file.type)) {
+        return showError('Invalid format! Use PNG, JPEG, GIF or BMP');
+      }
+      if (file.size > CONFIG.MAX_FILE_SIZE) {
+        return showError('File too large! Max 5MB');
+      }
+      
+      const reader = new FileReader();
+      reader.onload = e => {
+        state.image = e.target.result;
+        state.imageName = file.name;
+        dom.previewImage.src = state.image;
+        dom.fileName.textContent = file.name;
+        dom.uploadArea.classList.add('hidden');
+        dom.uploadPreview.classList.remove('hidden');
+        clearResult();
+        clearError();
+        updateUI();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearImage(e) {
+      e?.stopPropagation();
+      state.image = null;
+      state.imageName = null;
+      dom.uploadArea.classList.remove('hidden');
+      dom.uploadPreview.classList.add('hidden');
+      dom.fileInput.value = '';
+      clearResult();
+      updateUI();
+    }
+
+    function handlePromptInput() {
+      state.prompt = dom.promptInput.value;
+      dom.charCount.textContent = `${state.prompt.length}/200`;
+      dom.clearPrompt.classList.toggle('hidden', !state.prompt);
+      
+      // Auto-detect effect from prompt
+      const lowerPrompt = state.prompt.toLowerCase();
+      for (const effect of CONFIG.EFFECTS) {
+        if (effect.keywords.some(k => lowerPrompt.includes(k))) {
+          state.effect = effect.id;
+          $$('.effect-btn').forEach(b => b.classList.toggle('active', b.dataset.effect === effect.id));
+          dom.currentEffect.textContent = effect.name;
+          break;
+        }
+      }
+      
+      updateUI();
+    }
+
+    // ============================================
+    // GENERATION
+    // ============================================
+    async function generate() {
+      if (!state.image || !state.prompt || state.generating) return;
+      
+      state.generating = true;
+      dom.generateBtn.disabled = true;
+      hideError();
+      
+      // Show loading
+      dom.emptyState.classList.add('hidden');
+      dom.resultState.classList.add('hidden');
+      dom.loadingState.classList.remove('hidden');
+      dom.metadataPanel.classList.add('hidden');
+      dom.resultActions.classList.add('hidden');
+      
+      // Progress simulation
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress = Math.min(90, progress + 8);
+        dom.progressFill.style.width = `${progress}%`;
+        dom.progressText.textContent = `${progress}%`;
+      }, 400);
+      
+      try {
+        const response = await fetch(CONFIG.API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: state.image,
+            prompt: state.prompt,
+            params: {
+              palette: state.palette,
+              frames: state.frames,
+              delay: state.fps,
+              size: state.size
+            }
+          })
+        });
+        
+        const data = await response.json();
+        clearInterval(progressInterval);
+        
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Generation failed');
+        }
+        
+        // Complete
+        dom.progressFill.style.width = '100%';
+        dom.progressText.textContent = '100%';
+        
+        setTimeout(() => {
+          state.result = data;
+          state.generating = false;
+          
+          dom.loadingState.classList.add('hidden');
+          dom.resultState.classList.remove('hidden');
+          dom.resultGif.src = data.gifData;
+          
+          // Metadata
+          dom.metadataPanel.classList.remove('hidden');
+          dom.metaFrames.textContent = data.metadata.frameCount;
+          dom.metaPalette.textContent = data.metadata.palette;
+          dom.metaSize.textContent = `${data.metadata.dimensions.width}×${data.metadata.dimensions.height}`;
+          dom.metaEffect.textContent = data.metadata.effect || state.effect;
+          
+          dom.resultActions.classList.remove('hidden');
+          dom.generateBtn.disabled = false;
+          
+          // Add to history
+          addToHistory(data);
+          updateUI();
+        }, 300);
+        
+      } catch (err) {
+        clearInterval(progressInterval);
+        state.generating = false;
+        dom.loadingState.classList.add('hidden');
+        dom.emptyState.classList.remove('hidden');
+        dom.generateBtn.disabled = false;
+        showError(err.message);
+        updateUI();
+      }
+    }
+
+    function downloadGif() {
+      if (!state.result) return;
+      const link = document.createElement('a');
+      link.href = state.result.gifData;
+      link.download = `pixelanim8-${Date.now()}.gif`;
+      link.click();
+    }
+
+    // ============================================
+    // HISTORY
+    // ============================================
+    function addToHistory(data) {
+      state.history.unshift({
+        id: Date.now().toString(),
+        image: state.image,
+        prompt: state.prompt,
+        effect: state.effect,
+        palette: state.palette,
+        frames: state.frames,
+        fps: state.fps,
+        size: state.size,
+        gif: data.gifData,
+        meta: data.metadata
+      });
+      state.history = state.history.slice(0, 8);
+      saveHistory();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      if (!state.history.length) {
+        dom.historySection.classList.add('hidden');
+        return;
+      }
+      
+      dom.historySection.classList.remove('hidden');
+      dom.historyGrid.innerHTML = state.history.map(item => `
+        <div class="history-item" data-id="${item.id}">
+          <img src="${item.gif}" alt="History">
+          <div style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.7);padding:2px 4px;font-size:9px;font-family:'Courier New',monospace">
+            ${item.frames}f
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleHistoryClick(e) {
+      const item = e.target.closest('.history-item');
+      if (!item) return;
+      
+      const id = item.dataset.id;
+      const historyItem = state.history.find(h => h.id === id);
+      if (!historyItem) return;
+      
+      // Load from history
+      state.image = historyItem.image;
+      state.prompt = historyItem.prompt;
+      state.effect = historyItem.effect;
+      state.palette = historyItem.palette;
+      state.frames = historyItem.frames;
+      state.fps = historyItem.fps;
+      state.size = historyItem.size;
+      state.result = { gifData: historyItem.gif, metadata: historyItem.meta };
+      
+      // Update UI
+      dom.previewImage.src = state.image;
+      dom.fileName.textContent = 'From history';
+      dom.uploadArea.classList.add('hidden');
+      dom.uploadPreview.classList.remove('hidden');
+      
+      dom.promptInput.value = state.prompt;
+      dom.charCount.textContent = `${state.prompt.length}/200`;
+      dom.clearPrompt.classList.remove('hidden');
+      
+      dom.paletteSelect.value = state.palette;
+      dom.framesSlider.value = state.frames;
+      dom.framesValue.textContent = state.frames;
+      dom.fpsSlider.value = state.fps;
+      dom.fpsValue.textContent = `${state.fps} FPS`;
+      
+      $$('.size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === state.size));
+      $$('.effect-btn').forEach(b => b.classList.toggle('active', b.dataset.effect === state.effect));
+      dom.currentEffect.textContent = CONFIG.EFFECTS.find(e => e.id === state.effect)?.name || state.effect;
+      
+      updatePaletteColors();
+      updateQuickTags();
+      
+      // Show result
+      dom.emptyState.classList.add('hidden');
+      dom.loadingState.classList.add('hidden');
+      dom.resultState.classList.remove('hidden');
+      dom.resultGif.src = historyItem.gif;
+      
+      dom.metadataPanel.classList.remove('hidden');
+      dom.metaFrames.textContent = historyItem.meta.frameCount;
+      dom.metaPalette.textContent = historyItem.meta.palette;
+      dom.metaSize.textContent = `${historyItem.meta.dimensions.width}×${historyItem.meta.dimensions.height}`;
+      dom.metaEffect.textContent = historyItem.meta.effect || historyItem.effect;
+      
+      dom.resultActions.classList.remove('hidden');
+      updateUI();
+    }
+
+    // ============================================
+    // UI HELPERS
+    // ============================================
+    function updateUI() {
+      const canGenerate = state.image && state.prompt && !state.generating;
+      dom.generateBtn.disabled = !canGenerate;
+      
+      if (!state.image) {
+        dom.hint.textContent = 'Upload an image to start';
+        dom.hint.classList.remove('hidden');
+      } else if (!state.prompt) {
+        dom.hint.textContent = 'Describe your animation';
+        dom.hint.classList.remove('hidden');
+      } else {
+        dom.hint.classList.add('hidden');
+      }
+    }
+
+    function updatePaletteColors() {
+      const colors = CONFIG.PALETTES[state.palette]?.colors || [];
+      dom.paletteColors.innerHTML = colors.map(c => 
+        `<div class="palette-color" style="background:${c}"></div>`
+      ).join('');
+    }
+
+    function updateQuickTags() {
+      dom.quickPalette.textContent = CONFIG.PALETTES[state.palette]?.name || state.palette;
+      dom.quickFrames.textContent = `${state.frames}f`;
+      dom.quickFps.textContent = `${state.fps}fps`;
+      dom.quickSize.textContent = `${state.size}px`;
+    }
+
+    function showError(msg) {
+      dom.errorText.textContent = msg;
+      dom.errorMessage.classList.remove('hidden');
+    }
+
+    function hideError() {
+      dom.errorMessage.classList.add('hidden');
+    }
+
+    function clearResult() {
+      state.result = null;
+      dom.resultState.classList.add('hidden');
+      dom.metadataPanel.classList.add('hidden');
+      dom.resultActions.classList.add('hidden');
+      dom.emptyState.classList.remove('hidden');
+    }
+
+    function clearError() {
+      hideError();
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
